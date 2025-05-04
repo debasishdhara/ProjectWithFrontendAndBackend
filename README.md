@@ -66,5 +66,5 @@ npm run make:auth
 ```
 
 ---
+## 📚 Additional Information
 
-Would you like this content saved as a ready-to-paste `README.md` file?
