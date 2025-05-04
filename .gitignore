@@ -1,0 +1,31 @@
+# dependencies
+/node_modules
+.env
+.vscode
+.idea
+
+
+# Logs
+resources/logs
+resources/*.log
+resources/npm-debug.log*
+resources/yarn-debug.log*
+resources/yarn-error.log*
+resources/pnpm-debug.log*
+resources/lerna-debug.log*
+
+resources/node_modules
+resources/dist
+resources/dist-ssr
+resources/*.local
+
+# Editor directories and files
+resources/.vscode/*
+!.vscode/extensions.json
+resources/.idea
+resources/.DS_Store
+resources/*.suo
+resources/*.ntvs*
+resources/*.njsproj
+resources/*.sln
+resources/*.sw?
