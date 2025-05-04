@@ -26,6 +26,7 @@ init();
 //   res.send('Hello from TypeScript + Express!');
 // });
 
+
 import { loadRoutes, allRoutes } from './routes';
 
 import { createSwaggerSpec } from './system/swagger';
@@ -48,30 +49,32 @@ loadRoutes().then(() => {
     (async () => {
         const swaggerSpec = await createSwaggerSpec();
         app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+
+        
+        // Proxy for React app
+        if(process.env.NODE_ENV === 'development'){
+          app.use(
+            '/',
+            createProxyMiddleware({
+              target: 'http://localhost:5174',
+              changeOrigin: true,
+              ws: true,
+            })
+          );
+        }else {
+          // Serve static files from React
+          const reactBuildPath = path.join(__dirname, 'resources', 'dist');
+          console.log('Serving static files from:', reactBuildPath);
+          app.use(express.static(reactBuildPath));
+
+          // // Fallback for React Router (SPA)
+          app.get('/', (_req, res) => {
+            res.sendFile(path.join(reactBuildPath, 'index.html'));
+          });
+        }
+
     })();
-
-    // Proxy for React app
-    if(process.env.NODE_ENV === 'development'){
-      app.use(
-        '',
-        createProxyMiddleware({
-          target: 'http://localhost:5174',
-          changeOrigin: true,
-          ws: true,
-        })
-      );
-    }else {
-      // Serve static files from React
-      const reactBuildPath = path.join(__dirname, 'resources', 'dist');
-      console.log('Serving static files from:', reactBuildPath);
-      app.use(express.static(reactBuildPath));
-  
-      // // Fallback for React Router (SPA)
-      app.get('', (_req, res) => {
-        res.sendFile(path.join(reactBuildPath, 'index.html'));
-      });
-    }
-
     app.listen(port, () => {
         console.log(`Server running on http://localhost:${port}`);
     });
