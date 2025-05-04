@@ -25,10 +25,10 @@ class App extends Component<{}, AppState> {
     return (
       <>
         <div>
-          <a href="javascript:void(0);" rel="noreferrer">
+          <a href="javascript:;" rel="noreferrer">
             <img src={viteLogo} className="logo" alt="Vite logo" />
           </a>
-          <a href="javascript:void(0);" rel="noreferrer">
+          <a href="javascript:;" rel="noreferrer">
             <img src={reactLogo} className="logo react" alt="React logo" />
           </a>
         </div>
