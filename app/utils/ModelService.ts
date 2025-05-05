@@ -4,7 +4,9 @@ import { ModelConnection } from '@utils/ModelConnection';
 export class ModelService extends ModelConnection {
   static async create(modelName: string, data: any) {
     try {
-      const { Model, softDelete } = await ModelConnection.getModel(modelName);
+      const data = await ModelConnection.getModel(modelName);
+      const Model = data[modelName];
+      const softDelete = data.softDelete;
       return await DatabaseService.create(Model, data, softDelete);
     } catch (error: any) {
       throw new Error(`Error creating ${modelName}: ${error.message}`);
@@ -13,7 +15,9 @@ export class ModelService extends ModelConnection {
 
   static async getAll(modelName: string) {
     try {
-      const { Model, softDelete } = await ModelConnection.getModel(modelName);
+      const data = await ModelConnection.getModel(modelName);
+      const Model = data[modelName];
+      const softDelete = data.softDelete;
       return await DatabaseService.get(Model, {}, softDelete);
     } catch (error: any) {
       throw new Error(`Error fetching ${modelName}s: ${error.message}`);
@@ -22,7 +26,9 @@ export class ModelService extends ModelConnection {
 
   static async getById(modelName: string, id: string | number) {
     try {
-      const { Model, softDelete } = await ModelConnection.getModel(modelName);
+      const data = await ModelConnection.getModel(modelName);
+      const Model = data[modelName];
+      const softDelete = data.softDelete;
       return await DatabaseService.getById(Model, id, softDelete);
     } catch (error: any) {
       throw new Error(`Error fetching ${modelName} by ID: ${error.message}`);
@@ -31,7 +37,8 @@ export class ModelService extends ModelConnection {
 
   static async update(modelName: string, id: string | number, data: any) {
     try {
-      const { Model } = await ModelConnection.getModel(modelName);
+      const data = await ModelConnection.getModel(modelName);
+      const Model = data[modelName];
       return await DatabaseService.update(Model, id, data);
     } catch (error: any) {
       throw new Error(`Error updating ${modelName}: ${error.message}`);
@@ -40,8 +47,10 @@ export class ModelService extends ModelConnection {
 
   static async delete(modelName: string, id: string | number) {
     try {
-      const { Model } = await ModelConnection.getModel(modelName);
-      return await DatabaseService.delete(Model, id);
+      const data = await ModelConnection.getModel(modelName);
+      const Model = data[modelName];
+      const softDelete = data.softDelete;
+      return await DatabaseService.delete(Model, id, softDelete);
     } catch (error: any) {
       throw new Error(`Error deleting ${modelName}: ${error.message}`);
     }
