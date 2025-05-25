@@ -87,6 +87,7 @@ export async function connectMongo() {
                 // });
             }
             cachedMongoModels[model.modelName] = mongoose.model(model.modelName, mongooseSchema);
+            console.log('mongooseSchema', cachedMongoModels[model.modelName]);
         }
     });
     return { mongoose, cachedMongoModels };
@@ -163,6 +164,7 @@ export function convertMongoModelsToSwaggerSchemas(models: Record<string, any>) 
 export async function refreshMongoModels() {
     const models = await loadModels();
     
+    console.log('models', models);
     // Iterate over each model and update or create it in the Mongoose cache
     Object.values(models).forEach((model: any) => {
       if (model.schema && model.modelName) {
@@ -207,7 +209,7 @@ export async function refreshMongoModels() {
             deleted_at: { type: Date, default: null },
           });
         }
-  
+        console.log(mongooseSchema);
         cachedMongoModels[model.modelName] = mongoose.model(model.modelName, mongooseSchema);
       }
     });
@@ -216,10 +218,12 @@ export async function refreshMongoModels() {
   
   
 export async function getMongoModels() {
-  if (!cachedMongoModels) {
-    const { cachedMongoModels } = await connectMongo();
-    console.log('MongoDB models not loaded');
+  if (Object.keys(cachedMongoModels).length === 0) {
+    await connectMongo();
+    console.log('MongoDB models loaded');
+  } else {
+    console.log('MongoDB models already loaded');
   }
-  console.log('MongoDB models loaded');
   return cachedMongoModels;
 }
+

@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "target": "ES6",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
-    "module": "commonjs",                                /* Specify what module code is generated. */
+    "module": "CommonJS",
+    "target": "ES6",
+    "moduleResolution": "node",                                /* Specify what module code is generated. */
     "rootDir": "./",                                  /* Specify the root folder within your source files. */
     "outDir": "./dist",                                   /* Specify an output folder for all emitted files. */
     "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
@@ -11,6 +12,7 @@
     "baseUrl": ".",
     "paths": {
       "@swagger/*": ["system/swagger/*"],
+      "@workers/*": ["app/workers/*"],
       "@connections/*": ["system/connections/*"],
       "@system/*": ["system/*"],
       "@controller/*": ["app/controller/*"],
@@ -21,8 +23,7 @@
       "@config/*": ["app/config/*"],
       "@routes/*": ["routes/*"],
       "@command/*": ["command/*"]
-    },
-    "moduleResolution": "node",
+    }
   },
   
   "include": ["app", "system", "routes","app/**/*.ts"], // Make sure to include all .ts files in your source folder

@@ -36,6 +36,11 @@ const serviceDestinationPath = path.join(dirPath, 'app', 'service', `${toSentenc
 const controllerSourcePath = path.join(__dirname, 'baseStructure', 'controllers', 'BaseController.ts');
 const controllerDestinationPath = path.join(dirPath, 'app', 'controller', `${toSentenceCase(routerName)}Controller.ts`);
 
+
+// For worker creation
+const workersourcePath: string = path.join(__dirname, 'baseStructure', 'workers', 'baseWorker.ts');
+const workerdestinationPath: string = path.join(dirPath, 'app', 'workers', `${(routerName).toLowerCase()}Worker.ts`);
+
 // create routes
 const routeSourcePath = path.join(__dirname, 'baseStructure', 'routes', 'baseRouters.ts');
 const routeDestinationPath = path.join(dirPath, 'routes', `${routerName}Routes.ts`);
@@ -59,5 +64,6 @@ async function createIfNotExists(sourcePath: string, destinationPath: string, la
   await createIfNotExists(modelSourcePath, modelDestinationPath, 'Model');
   await createIfNotExists(serviceSourcePath, serviceDestinationPath, 'Service');
   await createIfNotExists(controllerSourcePath, controllerDestinationPath, 'Controller');
+  await createIfNotExists(workersourcePath, workerdestinationPath, 'Worker');
   await createIfNotExists(routeSourcePath, routeDestinationPath, 'Router');
 })();

@@ -62,6 +62,7 @@
   },
   "_moduleAliases": {
     "@swagger": "system/swagger",
+    "@workers": "app/workers",
     "@connections": "system/connections",
     "@system": "system",
     "@controller": "app/controller",

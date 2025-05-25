@@ -1,75 +1,55 @@
 
 // @ts-ignore
-import { MBaseService } from '@service/MBaseService';
 import { Request, Response } from 'express';
-
+import { runWorker } from '@utils/runWorker';
+const WORKER_FILE = './../workers/SBaseWorker.ts';
 
 export class MBaseController {
-
-  // Create a new SBase
-  static async createSBase(req: Request, res: Response): Promise<void> {
+  static async getMBases(req: Request, res: Response): Promise<void> {
     try {
-      const data = req.body;
-      const result = await MBaseService.create(data); // Replace 'MBase' with dynamic model name if needed
-      res.status(200).json({ success: true, data: result });
+      const result: any = await runWorker(WORKER_FILE,'getAll');
+      res.status(200).json(result);
     } catch (error: any) {
-      res.status(200).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 
-  // Get a list of SBases
-  static async getSBases(req: Request, res: Response): Promise<void> {
+  static async createMBase(req: Request, res: Response): Promise<void> {
     try {
-      const result = await MBaseService.getAll();
-      res.status(200).json({ success: true, data: result });
+      const result: any = await runWorker(WORKER_FILE,'create', { payload: req.body });
+      res.status(200).json(result);
     } catch (error: any) {
-      res.status(200).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 
-  // Get a single SBase by ID
-  static async getSBase(req: Request, res: Response): Promise<void> {
+  static async getMBase(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      const result = await MBaseService.getById(id);
-      if (result) {
-        res.status(200).json({ success: true, data: result });
-      } else {
-        res.status(200).json({ success: false, error: 'Not found' });
-      }
+      const result: any = await runWorker(WORKER_FILE,'getById', { id: req.params.id });
+      res.status(200).json(result);
     } catch (error: any) {
-      res.status(200).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 
-  // Update a SBase
-  static async updateSBase(req: Request, res: Response): Promise<void> {
+  static async updateMBase(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      const data = req.body;
-      const result = await MBaseService.update(id, data);
-      if (result) {
-        res.status(200).json({ success: true, data: result });
-      } else {
-        res.status(200).json({ success: false, error: 'Not found' });
-      }
+      const result: any = await runWorker(WORKER_FILE,'update', {
+        id: req.params.id,
+        payload: req.body,
+      });
+      res.status(200).json(result);
     } catch (error: any) {
-      res.status(200).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 
-  // Delete a SBase
-  static async deleteSBase(req: Request, res: Response): Promise<void> {
+  static async deleteMBase(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      const success = await MBaseService.delete(id);
-      if (success) {
-        res.status(200).json({ success: true, message: 'Deleted successfully' });
-      } else {
-        res.status(200).json({ success: false, error: 'Not found' });
-      }
+      const result: any = await runWorker(WORKER_FILE,'delete', { id: req.params.id });
+      res.status(200).json(result);
     } catch (error: any) {
-      res.status(200).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 }
