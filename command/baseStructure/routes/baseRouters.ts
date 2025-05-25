@@ -4,7 +4,7 @@ import { MBaseController } from '@controller/MBaseController';
 const baseRoutes = {
   "/Pbase": {
     "post": {
-      "functions": [MBaseController.createSBase], // controllerMethods
+      "functions": [MBaseController.createMBase], // controllerMethods
       "summary": "base route summery", // Adjust for relevant route
       "tags": ["base"],      
       "security": [],
@@ -50,7 +50,7 @@ const baseRoutes = {
       }
     },
     "get": {
-      "functions": [MBaseController.getSBases], // controllerMethods
+      "functions": [MBaseController.getMBases], // controllerMethods
       "summary": "base route summery", // Adjust for relevant route
       "tags": ["base"],      
       "security": [],
@@ -98,7 +98,7 @@ const baseRoutes = {
   },
   "/Pbase/:id": {
     "get": {
-      "functions": [MBaseController.getSBase], // controllerMethods
+      "functions": [MBaseController.getMBase], // controllerMethods
       "summary": "base route summery", // Adjust for relevant route
       "tags": ["base"],      
       "security": [],
@@ -144,7 +144,7 @@ const baseRoutes = {
       }
     },
     "put": {
-      "functions": [MBaseController.updateSBase], // controllerMethods
+      "functions": [MBaseController.updateMBase], // controllerMethods
       "summary": "base route summery", // Adjust for relevant route
       "tags": ["base"],
       "security": [],
@@ -190,7 +190,7 @@ const baseRoutes = {
       }
     },
     "delete": {
-      "functions": [MBaseController.deleteSBase], // controllerMethods
+      "functions": [MBaseController.deleteMBase], // controllerMethods
       "summary": "base route summery", // Adjust for relevant route
       "tags": ["base"],
       "security": [],

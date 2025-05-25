@@ -1,6 +1,6 @@
 // @ts-ignore
 import { parentPort, workerData } from 'worker_threads';
-import { BaseService } from '@service/BaseService';
+import { MBaseService } from '@service/MBaseService';
 
 async function run() {
   try {
@@ -8,19 +8,19 @@ async function run() {
 
     switch (workerData.action) {
       case 'create':
-        result = await BaseService.create(workerData.payload);
+        result = await MBaseService.create(workerData.payload);
         break;
       case 'getAll':
-        result = await BaseService.getAll();
+        result = await MBaseService.getAll();
         break;
       case 'getById':
-        result = await BaseService.getById(workerData.id);
+        result = await MBaseService.getById(workerData.id);
         break;
       case 'update':
-        result = await BaseService.update(workerData.id, workerData.payload);
+        result = await MBaseService.update(workerData.id, workerData.payload);
         break;
       case 'delete':
-        result = await BaseService.delete(workerData.id);
+        result = await MBaseService.delete(workerData.id);
         break;
       default:
         throw new Error('Invalid action');

@@ -3,9 +3,6 @@ import { ModelService } from '@utils/ModelService';
 
 export class MBaseService{
   static async create(data: any) {
-    if (!data.name || !data.email) {
-      throw new Error('Name and email are required');
-    }
     return await ModelService.create('MBase', data);
   }
 
