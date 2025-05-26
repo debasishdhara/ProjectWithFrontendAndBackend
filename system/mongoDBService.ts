@@ -67,7 +67,7 @@ export async function getMongo<T>(
     query.deleted_at = null;
   }
 
-  return await model.find(query).exec();
+  return await model.find(query).lean().exec();
 }
 
 export async function forceDeleteMongo<T>(

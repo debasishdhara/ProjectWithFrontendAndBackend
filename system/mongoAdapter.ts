@@ -3,6 +3,7 @@
 import mongoose, { Model, Query, Schema } from 'mongoose';
 import { dbConfig } from '@config/config';
 import { loadModels } from './modelLoader';
+import { hasMongoCache, readMongoCache, writeMongoCache } from './cacheFileSystem';
 
 interface CustomSchemaOptions extends mongoose.SchemaOptions {
     softDelete?: boolean;
@@ -28,12 +29,143 @@ const typeMap: Record<string, any> = {
     ENUM: String,   // We can use String and restrict values via enum options
     BLOB: Buffer,   // Blob could be stored as a Buffer
 };
+let isMongoConnected = false;
+
+
+export async function rebuildMongoModelsFromCache(mongoose:any,rawSchemas: any[]) {
+  await mongoose.connect(dbConfig.connections.mongo.uri);
+  for (const model of rawSchemas) {
+    const mongooseSchemaDef: Record<string, any> = {};
+
+    for (const [field, config] of Object.entries(model.schema)) {
+      const fieldConfig: any = {};
+      const cfg = config as { type: string; allowNull?: boolean; unique?: boolean };
+
+      const mongooseType = typeMap[cfg.type];
+      if (!mongooseType) {
+        console.warn(`Unsupported type "${cfg.type}" in model "${model.modelName}" field "${field}"`);
+        continue;
+      }
+
+      fieldConfig.type = mongooseType;
+
+      if (cfg.allowNull === false) {
+        fieldConfig.required = true;
+      }
+      if (cfg.unique) {
+        fieldConfig.unique = true;
+      }
+
+      mongooseSchemaDef[field] = fieldConfig;
+    }
+
+    const schemaOptions: CustomSchemaOptions = {
+      timestamps: model.timestamps
+        ? { createdAt: 'created_at', updatedAt: 'updated_at' }
+        : false,
+      versionKey: false,
+      collection: model.tableName || undefined,
+      softDelete: model.softDelete || false,
+    };
+
+    const mongooseSchema = new Schema(mongooseSchemaDef, schemaOptions);
+
+    if (model.softDelete) {
+      mongooseSchema.add({ deleted_at: { type: Date, default: null } });
+    }
+
+    // Use existing model if already registered, else define new model
+    if (mongoose.models[model.modelName]) {
+      cachedMongoModels[model.modelName] = mongoose.models[model.modelName];
+    } else {
+      cachedMongoModels[model.modelName] = mongoose.model(model.modelName, mongooseSchema);
+    }
+  }
+
+  return { mongoose, cachedMongoModels };
+}
 
 export async function connectMongo() {
+    
+
+    if (await hasMongoCache()) {
+        const modelDetails = await readMongoCache();
+        isMongoConnected = true;
+        const { cachedMongoModels } = await rebuildMongoModelsFromCache(mongoose,modelDetails);
+        // console.log('MongoDB cache loaded',mongoose.models);
+        return { mongoose, cachedMongoModels }; // Empty but returned to avoid reconnect
+    }
+    if (isMongoConnected) {
+        return { mongoose, cachedMongoModels };
+    }
+    // Connect only once
+    await mongoose.connect(dbConfig.connections.mongo.uri);
+    isMongoConnected = true;
+    console.log('MongoDB connected');
+
+    const models = await loadModels();
+
+    Object.values(models).forEach((model: any) => {
+        if (model.schema && model.modelName) {
+            const mongooseSchemaDef: Record<string, any> = {};
+
+            for (const [field, config] of Object.entries(model.schema)) {
+                const fieldConfig: any = {};
+                const cfg = config as { type: string; allowNull?: boolean; unique?: boolean };
+                const mongooseType = typeMap[cfg.type];
+
+                if (!mongooseType) {
+                    console.warn(`Unsupported type "${cfg.type}" in model "${model.modelName}" field "${field}"`);
+                    continue;
+                }
+
+                fieldConfig.type = mongooseType;
+                if (cfg.allowNull === false) fieldConfig.required = true;
+                if (cfg.unique) fieldConfig.unique = true;
+
+                mongooseSchemaDef[field] = fieldConfig;
+            }
+
+            const schemaOptions: CustomSchemaOptions = {
+                timestamps: model.timestamps ? { createdAt: 'created_at', updatedAt: 'updated_at' } : false,
+                versionKey: false,
+                collection: model.tableName || undefined,
+                softDelete: model.softDelete || false,
+            };
+
+            const mongooseSchema = new Schema(mongooseSchemaDef, schemaOptions);
+
+            if (model.softDelete) {
+                mongooseSchema.add({ deleted_at: { type: Date, default: null } });
+            }
+            console.log('Mongoose model created:', mongooseSchema);
+            cachedMongoModels[model.modelName] = mongoose.model(model.modelName, mongooseSchema);
+        }
+    });
+
+    // Cache this instead of full Mongoose models
+    const rawSchemas = Object.entries(models).map(([modelName, model]) => ({
+      modelName,
+      schema: model.schema,
+      tableName: model.tableName,
+      timestamps: model.timestamps,
+      softDelete: model.softDelete,
+    }));
+    await writeMongoCache(JSON.stringify(rawSchemas));
+
+    return { mongoose, cachedMongoModels };
+}
+
+export async function connectMongoOld() {
+    if(await hasMongoCache()) {
+      const cachedMongoModels = await readMongoCache();
+        return { cachedMongoModels };
+    }
+    const useCache = await hasMongoCache();
     // Connect to MongoDB using Mongoose
     await mongoose.connect(dbConfig.connections.mongo.uri);
     console.log('MongoDB connected');
-
+    
     // Load models dynamically (ensure models are exported correctly)
     const models = await loadModels();
 
@@ -86,10 +218,17 @@ export async function connectMongo() {
                 //     next();
                 // });
             }
+            
+            console.log(mongooseSchema);
             cachedMongoModels[model.modelName] = mongoose.model(model.modelName, mongooseSchema);
             console.log('mongooseSchema', cachedMongoModels[model.modelName]);
         }
     });
+    // Cache only metadata (model names)
+    if (!useCache) {
+      const modelNames = Object.keys(cachedMongoModels);
+      await writeMongoCache(modelNames);
+    }
     return { mongoose, cachedMongoModels };
 }
 
@@ -209,7 +348,6 @@ export async function refreshMongoModels() {
             deleted_at: { type: Date, default: null },
           });
         }
-        console.log(mongooseSchema);
         cachedMongoModels[model.modelName] = mongoose.model(model.modelName, mongooseSchema);
       }
     });
@@ -218,9 +356,10 @@ export async function refreshMongoModels() {
   
   
 export async function getMongoModels() {
-  if (Object.keys(cachedMongoModels).length === 0) {
-    await connectMongo();
+  if (!isMongoConnected || Object.keys(cachedMongoModels).length === 0) {
+    let { cachedMongoModels } = await connectMongo();
     console.log('MongoDB models loaded');
+    return cachedMongoModels;
   } else {
     console.log('MongoDB models already loaded');
   }

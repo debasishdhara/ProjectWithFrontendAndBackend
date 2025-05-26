@@ -3,7 +3,7 @@ import { UserService } from '@service/UserService';
 
 async function run() {
   try {
-    let result;
+    let result:any;
 
     switch (workerData.action) {
       case 'create':
@@ -25,9 +25,13 @@ async function run() {
         throw new Error('Invalid action');
     }
       // 🧼 Clean Mongoose documents
-     const cleanResult = Array.isArray(result)
-      ? result.map(cleanDocument)
-      : cleanDocument(result);
+     let cleanResult: any;
+      if (Array.isArray(result)) {
+        cleanResult = result.map(cleanDocument);
+      } else {
+        cleanResult = cleanDocument(result);
+      }
+
 
     parentPort?.postMessage({ success: true, data: cleanResult });
   } catch (error: any) {
@@ -35,7 +39,21 @@ async function run() {
   }
 }
 
-function cleanDocument(doc: any) {
+
+export const cleanDocument = (doc: any): any => {
+  if (!doc) return null;
+
+  // If it has dataValues, return a shallow copy of it
+  if (doc.dataValues) {
+    return { ...doc.dataValues };
+  }
+
+  // If it's an array, clean each item
+  if (Array.isArray(doc)) {
+    return doc.map(cleanDocument);
+  }
+
+  // Fallback for plain objects or documents with toObject()
   const obj = doc?.toObject?.() || doc;
 
   if (obj && obj._id && typeof obj._id.toString === 'function') {

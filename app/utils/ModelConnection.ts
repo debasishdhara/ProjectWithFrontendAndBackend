@@ -6,7 +6,7 @@ export class ModelConnection {
   protected static async getModel(Model:any): Promise<any> {
     if (activeDbType === 'mongo') {
       const cachedMongoModels: any = await getMongoModels();
-      return { [Model]: cachedMongoModels[Model], softDelete: cachedMongoModels[Model].schema.options.softDelete };
+      return { [Model]: cachedMongoModels[Model], softDelete: (cachedMongoModels[Model]?.schema.options.softDelete || false) };
     } else {
       const cachedModels = await getSQLModels(activeDbType);
       return { [Model]: cachedModels[Model], softDelete: cachedModels[Model].schemaOptions?.softDelete };

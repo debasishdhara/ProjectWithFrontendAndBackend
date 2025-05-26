@@ -110,6 +110,7 @@ export async function connectSQL(databaseType: 'mysql' | 'postgres' | 'sqlite') 
 
   // Sync the models and update the database schema if needed
   await sequelize.sync(); // this will update the database schema based on the model
+  console.log('Models synced', models);
   cachedModels = models;
   return { sequelize, cachedModels };
 }
